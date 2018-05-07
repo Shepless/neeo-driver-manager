@@ -1,0 +1,17 @@
+{
+  "name": "neeo-driver-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^3.5.1",
+    "nodemon": "^1.17.4"
+  },
+  "scripts": {
+    "setup": "npm i && sh ./scripts/setup.sh",
+    "start": "concurrently \"cd server && npm start\" \"cd client && http-server\""
+  },
+  "author": "Shepless (http://shepless.github.io/)",
+  "license": "ISC"
+}
