@@ -48,9 +48,12 @@ module.exports = {
 
   search(query) {
     return axios.get(`http://npmsearch.com/query?q=${query}-&fields=name`).then((response) => {
-      return response.data.results.map((result) => ({
-        name: result.name[0]
-      }));
+      return response.data.results
+        .map((result) => ({
+          name: result.name[0]
+        }))
+        .filter(result => result.name.toLowerCase().includes('neeo'))
+        .filter(result => !this.exists(result.name));
     });
   },
 

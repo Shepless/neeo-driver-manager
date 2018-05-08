@@ -11,8 +11,8 @@ module.exports = {
     this.configureMiddleware();
     this.configureControllers();
 
-    function gracefulShutdown() {
-      server.close(() => process.exit());
+    const gracefulShutdown = () => {
+      this.server.close(() => process.exit());
       setTimeout(() => process.exit(), 10000);
     }
 

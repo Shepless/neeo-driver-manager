@@ -93,9 +93,9 @@ class Driver {
         this.status = process.pm2_env.status;
         this.cpu = process.monit.cpu + '%';
         this.memory = (process.monit.memory / 1000000).toFixed(0) + 'MB';
-        this.uptime = ((this.state === 'oniline') ?
-                        ((Date.now() - process.pm2_env.created_at) / 1000) :
-                        0) + 's';
+        this.uptime = ((this.status === 'online') ?
+              ((Date.now() - process.pm2_env.created_at) / 1000).toFixed(0) :
+              0) + 's';
       })
       .catch(() => this);
   }
