@@ -1,11 +1,11 @@
 const DriverManager = require('../services/driver-manager');
 const PackageManager = require('../services/package-manager');
+const DriverModel = require('../models/driver');
 
 module.exports = {
   getAll(req, res) {
-    DriverManager.getAllProcesses()
-      .then((processes) => res.send(processes))
-      .catch((error) => res.status(500).send(error));;
+    const drivers = DriverManager.getAllDrivers();
+    res.send(drivers);
   },
 
   search(req, res) {
@@ -31,9 +31,9 @@ module.exports = {
     }
 
     PackageManager.install(name, version)
-      .then(() => DriverManager.updateInstalledDrivers())
+      .then(() => DriverManager.updateDrivers())
       .then(() => DriverManager.start(name))
-      .then(() => res.send(DriverManager.getProcess(name)))
+      .then(() => res.send(DriverManager.getDriver(name)))
       .catch((error) => res.status(500).send({
         error: error.message
       }));
@@ -64,7 +64,7 @@ module.exports = {
     }
 
     promise
-      .then(() => res.send(DriverManager.getProcess(name)))
+      .then(() => res.send(DriverManager.getDriver(name)))
       .catch(error => res.status(500).send({
         error: error
       }));
@@ -81,29 +81,10 @@ module.exports = {
 
     DriverManager.delete(name)
       .then(() => PackageManager.uninstall(name))
-      .then(() => DriverManager.updateInstalledDrivers())
+      .then(() => DriverManager.updateDrivers())
       .then(() => res.send())
       .catch((error) => res.status(500).send({
-        error: error.message
+        error: error
       }));
   }
 };
-
-// if (!req.body.name) {
-//   PackageManager.update()
-//     .then(() => DriverManager.updateInstalledDrivers())
-//     .then(() => DriverManager.stopAll())
-//     .then(() => DriverManager.startAll())
-//     .then(() => res.send(DriverManager.getAll()))
-//     .catch((error) => res.status(500).send({
-//       error: error.message
-//     }));
-// } else {
-//   PackageManager.update(req.body.name)
-//     .then(() => DriverManager.updateInstalledDrivers())
-//     .then(() => DriverManager.start(req.body.name))
-//     .then(() => res.send(DriverManager.get(req.body.name)))
-//     .catch((error) => res.status(500).send({
-//       error: error.message
-//     }));
-// }

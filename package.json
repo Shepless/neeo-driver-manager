@@ -10,7 +10,7 @@
   },
   "scripts": {
     "setup": "npm i && sh ./scripts/setup.sh",
-    "start": "concurrently \"cd server && npm start\" \"cd client && http-server\""
+    "start": "concurrently \"cd server && npm start\" \"cd client && npm start\""
   },
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC"

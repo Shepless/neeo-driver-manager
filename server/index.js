@@ -5,5 +5,7 @@ const PORT = process.env.PORT || 3001;
 
 PackageManager.init();
 DriverManager.init();
-Api.init();
-DriverManager.startAll().then(() => Api.start(PORT));
+DriverManager.startAll().then(() => {
+  Api.Rest.start(PORT);
+  Api.Socket.start();
+});

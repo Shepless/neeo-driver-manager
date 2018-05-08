@@ -1,16 +1,57 @@
+const EventEmitter = require('events');
 const path = require('path');
 const fs = require('fs');
 const pm2 = require('pm2');
 const {exec} = require('shelljs');
+const Driver = require('../models/driver');
 const {DRIVERS_INSTALL_LOCATION, DRIVERS_INSTALL_PACKAGE_JSON_PATH} = require('../constants/paths');
 
-module.exports = {
-  init() {
-    this.installedDrivers = new Map();
-    this.updateInstalledDrivers();
-  },
+class DriverManager extends EventEmitter {
+  constructor() {
+    super();
+  }
 
-  updateInstalledDrivers () {
+  init() {
+    this.drivers = new Map();
+    this.updateDrivers();
+
+    setInterval(() => this.pollForDriverChanges(), 1000);
+  }
+
+  pollForDriverChanges() {
+    return new Promise((resolve, reject) => {
+      pm2.list((error, processes) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve(processes);
+      });
+    })
+    .then((processes) => {
+      return processes.map(process => {
+        if (!this.drivers.has(process.name)) {
+          return;
+        }
+
+        const driver = this.drivers.get(process.name);
+
+        driver.update(
+          process.pid,
+          process.pm2_env.status,
+          process.monit.cpu + '%',
+          (process.monit.memory / 1000000).toFixed(0) + 'MB',
+          ((Date.now() - process.pm2_env.created_at) / 1000) + 's'
+        );
+
+        return driver;
+      });
+    })
+    .then((drivers) => this.emit('update', drivers));
+  }
+
+  updateDrivers () {
     if (require.cache[DRIVERS_INSTALL_PACKAGE_JSON_PATH]) {
       delete require.cache[DRIVERS_INSTALL_PACKAGE_JSON_PATH];
     }
@@ -28,18 +69,17 @@ module.exports = {
       const mainFilePath = path.resolve(driverPath, driverPkgJson.main);
 
       driverPkgJson.main = mainFilePath;
-
-      this.installedDrivers.set(driverName, driverPkgJson);
+      this.drivers.set(driverName, new Driver(driverPkgJson));
     });
-  },
+  }
 
   checkDriverIsInstalled(name) {
-    this.updateInstalledDrivers();
+    this.updateDrivers();
 
-    if (!this.installedDrivers.has(name)) {
+    if (!this.drivers.has(name)) {
       throw new Error(`Cannot find driver "${name}", please make sure it is installed and try again.`);
     }
-  },
+  }
 
   startDaemon() {
     return new Promise((resolve, reject) => {
@@ -53,26 +93,15 @@ module.exports = {
         resolve();
       });
     });
-  },
+  }
 
-  getAllProcesses() {
-    return new Promise((resolve, reject) => {
-      pm2.list(function (error, processes) {
-        if (error) {
-          reject(error);
-          return;
-        }
+  getAllDrivers() {
+    return Array.from(this.drivers.values());
+  }
 
-        resolve(processes);
-      });
-    });
-  },
-
-  getProcess(name) {
-    return this.getAllProcesses().then(
-      processes => processes.find(process => process.name === name)
-    );
-  },
+  getDriver(name) {
+    return this.getAllDrivers().find(process => process.name === name);
+  }
 
   delete(name) {
     try {
@@ -81,22 +110,15 @@ module.exports = {
       return Promise.resolve();
     }
 
-    return this.getAllProcesses().then((processes) => {
-      const process = processes.find(process => process.name === name);
-
-      pm2.delete(process.name, (error) => {
-        if (error) {
-          return Promise.reject(error);
-        }
-      });
-    });
-  },
+    const driver = this.drivers.get(name);
+    return driver.delete().then(() => this.drivers.delete(name));
+  }
 
   stopAll() {
     return Promise.all(
-      Array.from(this.installedDrivers.keys()).map(name => this.stop(name))
+      Array.from(this.drivers.keys()).map(name => this.stop(name))
     );
-  },
+  }
 
   stop(name) {
     try {
@@ -105,26 +127,15 @@ module.exports = {
       return Promise.resolve();
     }
 
-    return this.getAllProcesses().then((processes) => {
-      const process = processes.find(process => process.name === name);
-
-      return new Promise ((resolve, reject) => {
-        pm2.stop(process.name, (error) => {
-          if (error) {
-            return reject(error);
-          }
-
-          resolve();
-        });
-      });
-    });
-  },
+    const driver = this.drivers.get(name);
+    return driver.stop();
+  }
 
   startAll() {
     return Promise.all(
-      Array.from(this.installedDrivers.keys()).map(name => this.start(name))
+      Array.from(this.drivers.keys()).map(name => this.start(name))
     );
-  },
+  }
 
   start(name) {
     try {
@@ -133,24 +144,9 @@ module.exports = {
       return Promise.reject(e);
     }
 
-    const driverInfo = this.installedDrivers.get(name);
-
-    return this.startDaemon().then(() => {
-      return new Promise((resolve, reject) => {
-        pm2.start({
-          name: name,
-          script: driverInfo.main,
-          instances: 1,
-          max_memory_restart: '100M'
-        }, (error) => {
-          if (error) {
-            reject(error);
-            return
-          }
-
-          resolve(driverInfo);
-        });
-      });
-    });
+    const driver = this.drivers.get(name);
+    return driver.start();
   }
-};
+}
+
+module.exports = new DriverManager();

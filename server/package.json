@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index"
+    "start": "nodemon index"
   },
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC",
@@ -14,7 +14,8 @@
     "npm-keyword": "^5.0.0",
     "npm-module-search": "^3.0.0",
     "pm2": "^2.10.3",
-    "shelljs": "^0.8.1"
+    "shelljs": "^0.8.1",
+    "socket.io": "^2.1.0"
   },
   "directories": {
     "lib": "lib"
