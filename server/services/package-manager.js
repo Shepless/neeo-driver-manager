@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const pm2 = require('pm2');
-const npmModuleSearch = require('npm-module-search');
+const axios = require('axios');
 const {which, exec, mkdir, cd} = require('shelljs');
 const {DRIVERS_INSTALL_LOCATION, DRIVERS_INSTALL_PACKAGE_JSON_PATH} = require('../constants/paths');
 
@@ -46,15 +46,11 @@ module.exports = {
     return Promise.resolve(packages);
   },
 
-  search(pkgName) {
-    return new Promise((resolve, reject) => {
-      npmModuleSearch.search(pkgName, (error, modules) => {
-        if (error) {
-          return reject(error);
-        }
-
-        resolve(modules);
-      });
+  search(query) {
+    return axios.get(`http://npmsearch.com/query?q=${query}-&fields=name`).then((response) => {
+      return response.data.results.map((result) => ({
+        name: result.name[0]
+      }));
     });
   },
 
@@ -77,7 +73,7 @@ module.exports = {
           return reject(new Error(`Failed to install driver "${pkgName}" from npm`));
         }
 
-        resolve(stdout);
+        resolve(require(path.resolve(DRIVERS_INSTALL_LOCATION, 'node_modules', pkgName, 'package.json')));
       });
     });
   },

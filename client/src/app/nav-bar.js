@@ -1,7 +1,6 @@
 import React from 'react';
 import AppBar from 'react-toolbox/lib/app_bar';
 import GitHubIcon from './github-icon';
-import './app.css';
 
 const NavBar = () => {
   const open = () => window.open('https://www.github.com');

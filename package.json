@@ -5,12 +5,11 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "concurrently": "^3.5.1",
-    "nodemon": "^1.17.4"
+    "concurrently": "^3.5.1"
   },
   "scripts": {
     "setup": "npm i && sh ./scripts/setup.sh",
-    "start": "concurrently \"cd server && npm start\" \"cd client && npm start\""
+    "start": "concurrently \"sh ./scripts/start-server.sh\" \"sh ./scripts/start-client.sh\""
   },
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC"

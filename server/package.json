@@ -8,6 +8,7 @@
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "cors": "^2.8.4",
     "express": "^4.16.3",
     "npm": "^6.0.0",
@@ -21,6 +22,8 @@
     "lib": "lib"
   },
   "keywords": [],
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^1.17.4"
+  },
   "description": ""
 }

@@ -10,6 +10,14 @@ module.exports = {
     this.server = http.createServer(app);
     this.configureMiddleware();
     this.configureControllers();
+
+    function gracefulShutdown() {
+      server.close(() => process.exit());
+      setTimeout(() => process.exit(), 10000);
+    }
+
+    process.on('SIGTERM', gracefulShutdown);
+    process.on('SIGINT', gracefulShutdown);
   },
 
   configureMiddleware() {

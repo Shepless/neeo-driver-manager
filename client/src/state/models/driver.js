@@ -9,11 +9,11 @@ export default class DriverModel {
     @observable uptime = 0;
 
     constructor(name, description, status, cpu, memory, uptime) {
-        this.name = name;
-        this.description = description;
-        this.status = status;
-        this.cpu = cpu;
-        this.memory = memory;
-        this.uptime = uptime;
+      this.name = name;
+      this.description = description;
+      this.status = status;
+      this.cpu = cpu;
+      this.memory = memory;
+      this.uptime = uptime;
     }
 }

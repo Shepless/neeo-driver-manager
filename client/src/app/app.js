@@ -1,9 +1,8 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+import React from 'react';
 import {observer} from 'mobx-react';
 import NavBar from '@/app/nav-bar';
-import Drivers from '@/drivers/drivers';
 import SearchBox from '@/search/search-box';
+import Drivers from '@/drivers/drivers';
 import '@/app/app.css';
 
 const App = observer(({store}) => (

@@ -13,45 +13,32 @@ class DriverManager extends EventEmitter {
 
   init() {
     this.drivers = new Map();
-    this.updateDrivers();
+    this.syncWithInstalledPackages();
 
-    setInterval(() => this.pollForDriverChanges(), 1000);
+    return Promise.all(
+      Array.from(this.drivers.values()).map((driver) => driver.update())
+    )
   }
 
-  pollForDriverChanges() {
+  startDaemon() {
     return new Promise((resolve, reject) => {
-      pm2.list((error, processes) => {
+      pm2.connect((error) => {
         if (error) {
-          reject(error);
-          return;
+          return reject(error);
         }
 
-        resolve(processes);
+        resolve();
       });
-    })
-    .then((processes) => {
-      return processes.map(process => {
-        if (!this.drivers.has(process.name)) {
-          return;
-        }
-
-        const driver = this.drivers.get(process.name);
-
-        driver.update(
-          process.pid,
-          process.pm2_env.status,
-          process.monit.cpu + '%',
-          (process.monit.memory / 1000000).toFixed(0) + 'MB',
-          ((Date.now() - process.pm2_env.created_at) / 1000) + 's'
-        );
-
-        return driver;
-      });
-    })
-    .then((drivers) => this.emit('update', drivers));
+    });
   }
 
-  updateDrivers () {
+  createDriver(pkgJson) {
+    const driver = new Driver(pkgJson);
+    this.drivers.set(driver.name, driver);
+    return driver;
+  }
+
+  syncWithInstalledPackages() {
     if (require.cache[DRIVERS_INSTALL_PACKAGE_JSON_PATH]) {
       delete require.cache[DRIVERS_INSTALL_PACKAGE_JSON_PATH];
     }
@@ -62,7 +49,19 @@ class DriverManager extends EventEmitter {
       return;
     }
 
+    // Remove drivers that have been uninstalled
+    this.drivers.forEach(driver => {
+      if (!pkgJson.dependencies[driver.name]) {
+        this.drivers.delete(driver.name);
+      }
+    });
+
+    // Add drivers that have been installed
     Object.keys(pkgJson.dependencies).forEach((driverName) => {
+      if (this.drivers.has(driverName)) {
+        return;
+      }
+
       const driverPath = path.resolve(DRIVERS_INSTALL_LOCATION, 'node_modules', driverName);
       const driverPkgJsonPath = path.resolve(driverPath, 'package.json');
       const driverPkgJson = require(driverPkgJsonPath);
@@ -73,26 +72,17 @@ class DriverManager extends EventEmitter {
     });
   }
 
-  checkDriverIsInstalled(name) {
-    this.updateDrivers();
-
-    if (!this.drivers.has(name)) {
-      throw new Error(`Cannot find driver "${name}", please make sure it is installed and try again.`);
-    }
+  startPolling() {
+    setInterval(() => this.poll(), 1000);
   }
 
-  startDaemon() {
-    return new Promise((resolve, reject) => {
-      pm2.connect((error) => {
-        if (error) {
-          process.exit(2);
-          reject(error);
-          return;
-        }
+  poll() {
+    this.syncWithInstalledPackages();
 
-        resolve();
-      });
-    });
+    const drivers = Array.from(this.drivers.values());
+
+    drivers.forEach(driver => driver.update());
+    this.emit('update', drivers);
   }
 
   getAllDrivers() {
@@ -103,49 +93,16 @@ class DriverManager extends EventEmitter {
     return this.getAllDrivers().find(process => process.name === name);
   }
 
-  delete(name) {
-    try {
-      this.checkDriverIsInstalled(name);
-    } catch (e) {
-      return Promise.resolve();
-    }
-
-    const driver = this.drivers.get(name);
-    return driver.delete().then(() => this.drivers.delete(name));
-  }
-
   stopAll() {
     return Promise.all(
-      Array.from(this.drivers.keys()).map(name => this.stop(name))
+      Array.from(this.drivers.values()).map(driver => driver.stop())
     );
-  }
-
-  stop(name) {
-    try {
-      this.checkDriverIsInstalled(name);
-    } catch (e) {
-      return Promise.resolve();
-    }
-
-    const driver = this.drivers.get(name);
-    return driver.stop();
   }
 
   startAll() {
     return Promise.all(
-      Array.from(this.drivers.keys()).map(name => this.start(name))
+      Array.from(this.drivers.values()).map(driver => driver.start())
     );
-  }
-
-  start(name) {
-    try {
-      this.checkDriverIsInstalled(name);
-    } catch (e) {
-      return Promise.reject(e);
-    }
-
-    const driver = this.drivers.get(name);
-    return driver.start();
   }
 }
 

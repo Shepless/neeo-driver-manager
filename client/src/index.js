@@ -29,26 +29,6 @@ axios.get('/api/drivers').then((response) => {
       driver.memory,
       driver.uptime
     ));
-
-    // drivers.forEach((updatedDriver) => {
-    //   const driver = store.drivers.find((driver) => driver.name === updatedDriver.name);
-    //
-    //   if (!driver) {
-    //     store.drivers.unshift(new DriverModel(
-    //       updatedDriver.name,
-    //       updatedDriver.description,
-    //       updatedDriver.status,
-    //       updatedDriver.cpu,
-    //       updatedDriver.memory,
-    //       updatedDriver.uptime
-    //     ));
-    //   } else {
-    //     driver.status = updatedDriver.status;
-    //     driver.cpu = updatedDriver.cpu;
-    //     driver.memory = updatedDriver.memory;
-    //     driver.uptime = updatedDriver.uptime;
-    //   }
-    // });
   });
 
   ReactDOM.render(<App store={store} />, document.getElementById('app'));

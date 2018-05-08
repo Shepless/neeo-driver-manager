@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
-import {observable, toJS, isObservableObject} from 'mobx';
+import {observable} from 'mobx';
 import {observer} from 'mobx-react';
+import debounce from 'lodash/debounce';
 import axios from 'axios';
 import AutoComplete from 'react-toolbox/lib/autocomplete';
+import ProgressBar from 'react-toolbox/lib/progress_bar';
 
 const SEARCH_BOX_STYLE = {
   width: '50%',
@@ -12,19 +14,26 @@ const SEARCH_BOX_STYLE = {
 @observer
 export default class SearchBox extends Component {
   @observable results = [];
+  @observable isLoading = false;
+  search = debounce(query => axios.get(`/api/drivers/${query}`).then((response) => {
+    this.results = response.data;
+    this.isLoading = false;
+  }), 1000);
 
   onQueryChange(query) {
-    axios.get(`/api/drivers/${query}`).then((response) => this.results = response.data);
+    this.isLoading = true;
+    this.search(query);
   }
 
   onChange(value) {
     axios.post('/api/drivers', {
       name: value[0]
     });
+
+    this.results = [];
   }
 
   render() {
-    console.log(this.results.map)
     return (
       <div style={SEARCH_BOX_STYLE}>
         <AutoComplete
@@ -33,6 +42,7 @@ export default class SearchBox extends Component {
           onQueryChange={(query) => this.onQueryChange(query)}
           onChange={(value) => this.onChange(value)}
         />
+        {this.isLoading ? <ProgressBar type="linear" mode="indeterminate" /> : null}
       </div>
     );
   }

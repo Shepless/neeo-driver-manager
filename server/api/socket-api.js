@@ -12,6 +12,14 @@ module.exports = {
   },
 
   onConnected(socket) {
-    DriverManager.on('update', drivers => socket.emit('driver:update', drivers));
+    const onDriversUpdate = drivers => {
+      socket.emit('driver:update', drivers);
+    };
+
+    DriverManager.on('update', onDriversUpdate);
+
+    socket.on('disconnect', () => {
+      DriverManager.removeListener('update', onDriversUpdate);
+    });
   }
 }

@@ -31,9 +31,10 @@ module.exports = {
     }
 
     PackageManager.install(name, version)
-      .then(() => DriverManager.updateDrivers())
-      .then(() => DriverManager.start(name))
-      .then(() => res.send(DriverManager.getDriver(name)))
+      .then((pkgJson) => DriverManager.createDriver(pkgJson))
+      .then((driver) => {
+        driver.start(name).then(() => res.send(driver));
+      })
       .catch((error) => res.status(500).send({
         error: error.message
       }));
@@ -49,14 +50,15 @@ module.exports = {
       });
     }
 
-    let promise = Promise.resolve();
+    const driver = DriverManager.getDriver(name);
+    const promise = Promise.resolve();
 
     switch (action) {
       case 'start':
-        promise.then(() => DriverManager.start(name));
+        promise.then(() => driver.start(name));
         break;
       case 'stop':
-        promise.then(() => DriverManager.stop(name));
+        promise.then(() => driver.stop(name));
         break;
       default:
         promise.then(() => Promise.reject(new Error(`"${action}" is not supported on drivers`)));
@@ -64,7 +66,7 @@ module.exports = {
     }
 
     promise
-      .then(() => res.send(DriverManager.getDriver(name)))
+      .then(() => res.send(driver))
       .catch(error => res.status(500).send({
         error: error
       }));
@@ -78,10 +80,11 @@ module.exports = {
         error: new Error('A driver name must be provided')
       });
     }
+    
+    const driver = DriverManager.getDriver(name);
 
-    DriverManager.delete(name)
+    driver.delete(name)
       .then(() => PackageManager.uninstall(name))
-      .then(() => DriverManager.updateDrivers())
       .then(() => res.send())
       .catch((error) => res.status(500).send({
         error: error
