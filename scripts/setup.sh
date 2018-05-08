@@ -1,4 +1,4 @@
 cd ./server
 npm install
-cd ./client
+cd ../client
 npm install
