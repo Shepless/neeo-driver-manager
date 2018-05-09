@@ -8,7 +8,7 @@ import DriverModel from '@/state/models/driver';
 import App from '@/app/app';
 
 axios.get('/api/drivers').then((response) => {
-  const socket = socketIo('http://localhost:3000');
+  const socket = socketIo('/');
   const store = new DriverStore();
 
   store.drivers = response.data.map((data) => new DriverModel(
