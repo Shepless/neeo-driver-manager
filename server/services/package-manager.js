@@ -47,14 +47,11 @@ module.exports = {
   },
 
   search(query) {
-    return axios.get(`http://npmsearch.com/query?q=${query}-&fields=name`).then((response) => {
-      return response.data.results
-        .map((result) => ({
-          name: result.name[0]
-        }))
-        .filter(result => result.name.toLowerCase().includes('neeo'))
-        .filter(result => !this.exists(result.name));
-    });
+    return axios.get(`https://www.npmjs.com/search/suggestions?q=${query}-&fields=name`).then((response) => {
+      return response.data
+        .map(result => Object.assign(result, { isInstalled: this.exists(result.name) }))
+        .filter(result => result.name.toLowerCase().includes('neeo'));
+    }).catch(e => console.log(e));
   },
 
   exists(pkgName) {
