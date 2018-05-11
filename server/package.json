@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index"
+    "start": "electron main.js"
   },
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC",
