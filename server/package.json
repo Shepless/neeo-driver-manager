@@ -8,6 +8,7 @@
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC",
   "dependencies": {
+    "auto-launch": "^5.0.5",
     "axios": "^0.18.0",
     "cors": "^2.8.4",
     "express": "^4.16.3",

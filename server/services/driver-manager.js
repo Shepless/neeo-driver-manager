@@ -73,7 +73,7 @@ class DriverManager extends EventEmitter {
   }
 
   startPolling() {
-    setInterval(() => this.poll(), 1000);
+    setInterval(() => this.poll(), 500);
   }
 
   poll() {
@@ -87,6 +87,14 @@ class DriverManager extends EventEmitter {
 
   getAllDrivers() {
     return Array.from(this.drivers.values());
+  }
+
+  getRunningDrivers() {
+    return this.getAllDrivers().filter(driver => driver.status === 'online');
+  }
+
+  getOfflineDrivers() {
+    return this.getAllDrivers().filter(driver => driver.status === 'offline' || driver.status === 'stopped');
   }
 
   getDriver(name) {

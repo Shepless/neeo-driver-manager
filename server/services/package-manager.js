@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const pm2 = require('pm2');
 const axios = require('axios');
+const shell = require('shelljs');
 const {which, exec, mkdir, cd} = require('shelljs');
 const {DRIVERS_INSTALL_LOCATION, DRIVERS_INSTALL_PACKAGE_JSON_PATH} = require('../constants/paths');
 

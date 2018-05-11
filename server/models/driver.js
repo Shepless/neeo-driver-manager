@@ -25,6 +25,8 @@ class Driver {
   }
 
   start() {
+    this.status = 'launching';
+
     return this.connectToDaemon().then(() => {
       new Promise((resolve, reject) => {
         pm2.start({
@@ -47,6 +49,8 @@ class Driver {
   }
 
   stop() {
+    this.status = 'stopping';
+
     return new Promise ((resolve, reject) => {
       pm2.stop(this.name, (error) => {
         if (error) {

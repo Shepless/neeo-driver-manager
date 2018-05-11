@@ -5,11 +5,13 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
-    "concurrently": "^3.5.1"
+    "concurrently": "^3.5.1",
+    "electron": "^2.0.0"
   },
   "scripts": {
     "setup": "npm i && sh ./scripts/setup.sh",
-    "start": "concurrently \"sh ./scripts/start-server.sh\" \"sh ./scripts/start-client.sh\""
+    "start": "concurrently \"sh ./scripts/start-server.sh\" \"sh ./scripts/start-client.sh\" --kill-others",
+    "foo": "sh ./scripts/prepare-build.sh"
   },
   "author": "Shepless (http://shepless.github.io/)",
   "license": "ISC"
